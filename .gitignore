@@ -1,0 +1,6 @@
+venv/
+.vscode/
+tmp*.py
+settings.py
+__pycache__/
+geckodriver*

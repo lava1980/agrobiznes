@@ -5,3 +5,6 @@ settings.py
 __pycache__/
 geckodriver*
 *.xlsx
+*.log
+*.html
+*.csv

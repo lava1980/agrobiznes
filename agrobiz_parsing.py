@@ -9,10 +9,18 @@ import time
 import settings
 import bs4
 import openpyxl
+import logging
+
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
+                    level = logging.INFO,
+                    filename = 'agro.log'
+                    )
+
 
 
 
 def auth():
+    logging.info('Старт авторизации') 
     driver.get('https://agrobizneskarta.ru/')
     driver.find_element_by_xpath('//div[@id="loginzone"]/a').click()
     WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.NAME, 'USER_LOGIN')))
@@ -28,6 +36,7 @@ def get_celldata(data_id):
     director = driver.find_element_by_xpath('//div[@class="contact_info_inner"]/p').text
     contacts = driver.find_element_by_xpath('//div[@class="contact_info_inner"]/p[2]').text
     email = driver.find_element_by_xpath('//div[@class="contact_info_inner"]/p/a').text
+    logging.info('Получаем email: ' + email) 
     print(director, contacts, email)
 
 
@@ -48,7 +57,7 @@ def id_list(html):  # Список id, чтобы потом по ним иск�
 def get_email(data_id):
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, f'//div[@data-id="{data_id}"]/span')))        
     driver.find_element_by_xpath(f'//div[@data-id="{data_id}"]/span').click()
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//div[@class="contact_info_inner"]')))
+    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//div[@class="contact_info_inner"]')))
     email = driver.find_element_by_xpath('//div[@class="contact_info_inner"]/p/a').text
     print(email)
     return email
@@ -57,53 +66,42 @@ def get_email(data_id):
 def write_csv(sheet_name, email_list):     
     for email in email_list:
         with open(sheet_name + '.csv', 'a') as file:
-            file.write(email + '\n')    
+            file.write(email + '\n')  
+    logging.info('Записали имейлы в файл')      
     
 
 def get_pages_count(html):
     soup = bs4.BeautifulSoup(html, 'lxml')
     count_pages = soup.find('div', class_='modern-page-navigation').find_all('a')[-2].get_text()
     print('Общее число страниц: ' + count_pages)
+    logging.info('Получаем число страниц: ' + count_pages) 
     return int(count_pages)
 
 
 
 
-
-
-
-
-
-
-
 options = webdriver.FirefoxOptions()
-options.headless = False
+options.headless = True
 driver = webdriver.Firefox(executable_path=os.getcwd() + '/geckodriver', options=options)
 auth()
 
+def one_category_handler(category, url):
+    logging.info('Обрабатываем категорию ' + category)     
+    page_html = get_html(url)    
+    list_id = id_list(page_html) # Список id по которым ищем мыло
 
-page_html = get_html(settings.URL_LIST[0]['Растениеводство'])
-pages_count = get_pages_count(page_html)
-list_id = id_list(page_html) # Список id по которым ищем мыло
-
-email_list = []
-for id in list_id:
-    try:
-        email = get_email(id)
-        email_list.append(email)            
-    except NoSuchElementException:
-        continue
-
-write_csv('Растениеводство', email_list)
-
+    email_list = []
+    for id in list_id:
+        try:
+            email = get_email(id)
+            email_list.append(email)            
+        except NoSuchElementException:
+            continue
+    write_csv(category, email_list)
 
 
-
-
-
-
-
-# TODO Написать итерацию по общему числу страниц
-# TODO 
-# TODO 
-
+for cat in settings.URL_LIST:
+    category, url = cat    
+    pages_count = get_pages_count(get_html(url)) # Получаю число страниц
+    for i in range(1, pages_count):
+        one_category_handler(category, url + str(i))

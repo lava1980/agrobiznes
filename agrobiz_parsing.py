@@ -60,6 +60,12 @@ def write_csv(sheet_name, email_list):
             file.write(email + '\n')    
     
 
+def get_pages_count(html):
+    soup = bs4.BeautifulSoup(html, 'lxml')
+    count_pages = soup.find('div', class_='modern-page-navigation').find_all('a')[-2].get_text()
+    print('Общее число страниц: ' + count_pages)
+    return int(count_pages)
+
 
 
 
@@ -73,9 +79,11 @@ def write_csv(sheet_name, email_list):
 options = webdriver.FirefoxOptions()
 options.headless = False
 driver = webdriver.Firefox(executable_path=os.getcwd() + '/geckodriver', options=options)
-
 auth()
+
+
 page_html = get_html(settings.URL_LIST[0]['Растениеводство'])
+pages_count = get_pages_count(page_html)
 list_id = id_list(page_html) # Список id по которым ищем мыло
 
 email_list = []
@@ -95,7 +103,7 @@ write_csv('Растениеводство', email_list)
 
 
 
-# TODO авторизоваться
-# TODO должен быть список УРЛов, по которому буду итерироваться при помощи for
+# TODO Написать итерацию по общему числу страниц
+# TODO 
 # TODO 
 

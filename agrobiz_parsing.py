@@ -23,7 +23,7 @@ def auth():
     logging.info('Старт авторизации') 
     driver.get('https://agrobizneskarta.ru/')
     driver.find_element_by_xpath('//div[@id="loginzone"]/a').click()
-    WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.NAME, 'USER_LOGIN')))
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.NAME, 'USER_LOGIN')))
     driver.find_element_by_name('USER_LOGIN').send_keys(settings.LOGIN)
     driver.find_element_by_name('USER_PASSWORD').send_keys(settings.PASSW)
     driver.find_element_by_name('Login').click()
@@ -72,7 +72,7 @@ def write_csv(sheet_name, email_list):
 
 def get_pages_count(html):
     soup = bs4.BeautifulSoup(html, 'lxml')
-    count_pages = soup.find('div', class_='modern-page-navigation').find_all('a')[-2].get_text()
+    count_pages = soup.find('div', class_='modern-page-navigation').find_all('a')[-2].get_text()    
     print('Общее число страниц: ' + count_pages)
     logging.info('Получаем число страниц: ' + count_pages) 
     return int(count_pages)
@@ -81,7 +81,7 @@ def get_pages_count(html):
 
 
 options = webdriver.FirefoxOptions()
-options.headless = True
+options.headless = False
 driver = webdriver.Firefox(executable_path=os.getcwd() + '/geckodriver', options=options)
 auth()
 
@@ -94,7 +94,10 @@ def one_category_handler(category, url):
     for id in list_id:
         try:
             email = get_email(id)
-            email_list.append(email)            
+            if '@' in email:
+                email_list.append(email)
+            else: 
+                continue            
         except NoSuchElementException:
             continue
     write_csv(category, email_list)

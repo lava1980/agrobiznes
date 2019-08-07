@@ -48,19 +48,19 @@ def id_list(html):  # Список id, чтобы потом по ним иск�
 def get_email(data_id):
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, f'//div[@data-id="{data_id}"]/span')))        
     driver.find_element_by_xpath(f'//div[@data-id="{data_id}"]/span').click()
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//div[@class="contact_info_inner"]')))
     email = driver.find_element_by_xpath('//div[@class="contact_info_inner"]/p/a').text
     print(email)
     return email
 
 
-def write_collumn(sheet_name, file, email_list):
-    print(len(email_list))
-    wb = openpyxl.load_workbook(file)
-    sheet = wb[sheet_name]
+def write_csv(sheet_name, email_list):     
     for email in email_list:
-        sheet.cell(row=email_list.index(email) + 1, column=1,value=email)    
-    wb.save('agrobase.xlsx')    
-    return len(email_list)
+        with open(sheet_name + '.csv', 'a') as file:
+            file.write(email + '\n')    
+    
+
+
 
 
 
@@ -77,6 +77,7 @@ driver = webdriver.Firefox(executable_path=os.getcwd() + '/geckodriver', options
 auth()
 page_html = get_html(settings.URL_LIST[0]['Растениеводство'])
 list_id = id_list(page_html) # Список id по которым ищем мыло
+
 email_list = []
 for id in list_id:
     try:
@@ -85,7 +86,7 @@ for id in list_id:
     except NoSuchElementException:
         continue
 
-write_collumn('Растениеводство', 'agrobase.xlsx', email_list)
+write_csv('Растениеводство', email_list)
 
 
 

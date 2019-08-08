@@ -57,7 +57,7 @@ def id_list(html):  # Список id, чтобы потом по ним иск�
 def get_email(data_id):
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, f'//div[@data-id="{data_id}"]/span')))        
     driver.find_element_by_xpath(f'//div[@data-id="{data_id}"]/span').click()
-    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//div[@class="contact_info_inner"]')))
+    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//div[@class="contact_info_inner"]')))    
     email = driver.find_element_by_xpath('//div[@class="contact_info_inner"]/p/a').text
     print(email)
     return email
@@ -81,7 +81,7 @@ def get_pages_count(html):
 
 
 options = webdriver.FirefoxOptions()
-options.headless = False
+options.headless = True
 driver = webdriver.Firefox(executable_path=os.getcwd() + '/geckodriver', options=options)
 auth()
 
@@ -94,10 +94,7 @@ def one_category_handler(category, url):
     for id in list_id:
         try:
             email = get_email(id)
-            if '@' in email:
-                email_list.append(email)
-            else: 
-                continue            
+            email_list.append(email)
         except NoSuchElementException:
             continue
     write_csv(category, email_list)

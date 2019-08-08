@@ -57,8 +57,20 @@ def id_list(html):  # Список id, чтобы потом по ним иск�
 def get_email(data_id):
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, f'//div[@data-id="{data_id}"]/span')))        
     driver.find_element_by_xpath(f'//div[@data-id="{data_id}"]/span').click()
-    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//div[@class="contact_info_inner"]')))    
-    email = driver.find_element_by_xpath('//div[@class="contact_info_inner"]/p/a').text
+    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//div[@class="contact_info_inner"]//p[@class="contacts"]')))
+    emails = driver.find_elements_by_xpath('//div[@class="contact_info_inner"]/p/a')
+    full_email_list = []
+    for email in emails:
+        if '@' in email.text:
+            full_email_list.append(email.text)  
+        elif '' in email.text:
+            continue      
+    email = ', '.join(full_email_list)       
+    if email == '':
+        raise NoSuchElementException('Email равно пустая строка')
+    logging.info('Email равен ' + email)
+    assert email != None, 'email равен None'
+    assert email != '', 'email равен пустой строке'
     print(email)
     return email
 
@@ -94,7 +106,10 @@ def one_category_handler(category, url):
     for id in list_id:
         try:
             email = get_email(id)
-            email_list.append(email)
+            if '@' in email:
+                email_list.append(email)
+            else: 
+                continue            
         except NoSuchElementException:
             continue
     write_csv(category, email_list)

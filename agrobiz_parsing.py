@@ -84,16 +84,21 @@ def write_csv(sheet_name, email_list):
 
 def get_pages_count(html):
     soup = bs4.BeautifulSoup(html, 'lxml')
-    count_pages = soup.find('div', class_='modern-page-navigation').find_all('a')[-2].get_text()    
-    print('Общее число страниц: ' + count_pages)
-    logging.info('Получаем число страниц: ' + count_pages) 
-    return int(count_pages)
+    try:
+        count_pages = soup.find('div', class_='modern-page-navigation').find_all('a')[-2].get_text()    
+        print('Общее число страниц: ' + count_pages)
+        logging.info('Получаем число страниц: ' + count_pages) 
+        return int(count_pages)
+    except AttributeError:
+        count_pages = 1
+        return count_pages
+
 
 
 
 
 options = webdriver.FirefoxOptions()
-options.headless = True
+options.headless = False
 driver = webdriver.Firefox(executable_path=os.getcwd() + '/geckodriver', options=options)
 auth()
 
@@ -118,5 +123,7 @@ def one_category_handler(category, url):
 for cat in settings.URL_LIST:
     category, url = cat    
     pages_count = get_pages_count(get_html(url)) # Получаю число страниц
-    for i in range(1, pages_count):
+    for i in range(1, pages_count + 1):
         one_category_handler(category, url + str(i))
+
+driver.quit()

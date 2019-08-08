@@ -57,8 +57,11 @@ def id_list(html):  # Список id, чтобы потом по ним иск�
 def get_email(data_id):
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, f'//div[@data-id="{data_id}"]/span')))        
     driver.find_element_by_xpath(f'//div[@data-id="{data_id}"]/span').click()
-    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//div[@class="contact_info_inner"]')))
+    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//div[@class="contact_info_inner"]//p[@class="contacts"]')))
     email = driver.find_element_by_xpath('//div[@class="contact_info_inner"]/p/a').text
+    logging.info('Email равен ' + email)
+    assert email != None, 'email равен None'
+    assert email != '', 'email равен пустой строке'
     print(email)
     return email
 
@@ -81,7 +84,7 @@ def get_pages_count(html):
 
 
 options = webdriver.FirefoxOptions()
-options.headless = False
+options.headless = True
 driver = webdriver.Firefox(executable_path=os.getcwd() + '/geckodriver', options=options)
 auth()
 

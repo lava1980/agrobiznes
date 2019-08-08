@@ -58,7 +58,16 @@ def get_email(data_id):
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, f'//div[@data-id="{data_id}"]/span')))        
     driver.find_element_by_xpath(f'//div[@data-id="{data_id}"]/span').click()
     WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//div[@class="contact_info_inner"]//p[@class="contacts"]')))
-    email = driver.find_element_by_xpath('//div[@class="contact_info_inner"]/p/a').text
+    emails = driver.find_elements_by_xpath('//div[@class="contact_info_inner"]/p/a')
+    full_email_list = []
+    for email in emails:
+        if '@' in email.text:
+            full_email_list.append(email.text)  
+        elif '' in email.text:
+            continue      
+    email = ', '.join(full_email_list)       
+    if email == '':
+        raise NoSuchElementException('Email равно пустая строка')
     logging.info('Email равен ' + email)
     assert email != None, 'email равен None'
     assert email != '', 'email равен пустой строке'

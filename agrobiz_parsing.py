@@ -98,7 +98,7 @@ def get_pages_count(html):
 
 
 options = webdriver.FirefoxOptions()
-options.headless = True
+options.headless = False
 driver = webdriver.Firefox(executable_path=os.getcwd() + '/geckodriver', options=options)
 auth()
 

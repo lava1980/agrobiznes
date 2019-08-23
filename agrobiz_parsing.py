@@ -57,7 +57,7 @@ def id_list(html):  # Список id, чтобы потом по ним иск�
 def get_email(data_id):
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, f'//div[@data-id="{data_id}"]/span')))        
     driver.find_element_by_xpath(f'//div[@data-id="{data_id}"]/span').click()
-    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//div[@class="contact_info_inner"]//p[@class="contacts"]')))
+    WebDriverWait(driver, 30).until(EC.visibility_of_element_located((By.XPATH, '//div[@class="contact_info_inner"]//p[@class="contacts"]')))
     emails = driver.find_elements_by_xpath('//div[@class="contact_info_inner"]/p/a')
     full_email_list = []
     for email in emails:
@@ -84,10 +84,15 @@ def write_csv(sheet_name, email_list):
 
 def get_pages_count(html):
     soup = bs4.BeautifulSoup(html, 'lxml')
-    count_pages = soup.find('div', class_='modern-page-navigation').find_all('a')[-2].get_text()    
-    print('Общее число страниц: ' + count_pages)
-    logging.info('Получаем число страниц: ' + count_pages) 
-    return int(count_pages)
+    try:
+        count_pages = soup.find('div', class_='modern-page-navigation').find_all('a')[-2].get_text()    
+        print('Общее число страниц: ' + count_pages)
+        logging.info('Получаем число страниц: ' + count_pages) 
+        return int(count_pages)
+    except AttributeError:
+        count_pages = 1
+        return count_pages
+
 
 
 
@@ -118,5 +123,7 @@ def one_category_handler(category, url):
 for cat in settings.URL_LIST:
     category, url = cat    
     pages_count = get_pages_count(get_html(url)) # Получаю число страниц
-    for i in range(1, pages_count):
+    for i in range(1, pages_count + 1):
         one_category_handler(category, url + str(i))
+
+driver.quit()
